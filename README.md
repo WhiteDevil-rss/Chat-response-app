@@ -1,4 +1,4 @@
-# Chat Application
+# Chat Response Application
 
 ## Overview
 
