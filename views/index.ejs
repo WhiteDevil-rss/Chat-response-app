@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Personalized Chat App</title>
+</head>
+<body>
+    <div class="username-container" id="usernameContainer">
+        <h1>Welcome to the Chat App!</h1>
+        <input type="text" id="usernameInput" placeholder="Enter your name" />
+        <button id="startChatButton">Start Chat</button>
+    </div>
+
+    <div class="chat-container" id="chatContainer" style="display:none;">
+        <h1 class="chat-title">Chat App</h1>
+        <div id="chat" class="chat-box"></div>
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="Type a message..." />
+            <button id="sendButton">Send</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const usernameContainer = document.getElementById('usernameContainer');
+        const chatContainer = document.getElementById('chatContainer');
+        const chatBox = document.getElementById('chat');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const startChatButton = document.getElementById('startChatButton');
+        const usernameInput = document.getElementById('usernameInput');
+        let username = '';
+
+        const socket = io();
+
+        // Start chat after user enters their name
+        startChatButton.addEventListener('click', () => {
+            username = usernameInput.value.trim();
+            if (username) {
+                usernameContainer.style.display = 'none';
+                chatContainer.style.display = 'flex';
+                addMessage('bot', `Hello, ${username}! How can I assist you today?`);
+            } else {
+                alert("Please enter your name to start the chat.");
+            }
+        });
+
+        function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (!userMessage) return;
+
+            addMessage('user', userMessage);
+            userInput.value = '';
+
+            addMessage('bot', 'Typing...', true);
+            socket.emit('chatMessage', { username, message: userMessage });
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+
+        userInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+
+        socket.on('botReply', (botMessage) => {
+            chatBox.lastChild.remove();
+            addMessage('bot', botMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        function addMessage(sender, message, isTyping = false) {
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const messageDiv = document.createElement('div');
+            messageDiv.className = sender === 'user' ? 'user-message' : 'bot-response';
+            messageDiv.innerHTML = `<strong>${sender === 'user' ? username : 'Bot'}:</strong> ${isTyping ? '<em>Typing...</em>' : message} <span class="timestamp">${timestamp}</span>`;
+            chatBox.appendChild(messageDiv);
+        }
+    </script>
+</body>
+</html>
