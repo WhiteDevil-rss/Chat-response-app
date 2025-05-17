@@ -25,7 +25,7 @@ fs.readFile(path.join(__dirname, 'responses.json'), 'utf8')
   });
 
 // Render the main page
-app.get('/node', (req, res) => {
+app.get('/chat', (req, res) => {
     res.render('index');
 });
 
